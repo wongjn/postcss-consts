@@ -116,10 +116,7 @@ function getConstants(root, regex) {
       node.walkDecls(decl => {
         if (decl.prop.indexOf('--') === 0 && regex.test(decl.prop)) {
           constants[decl.prop.substr(2)] = decl.value;
-
-          if (removeConstantDeclarations) {
-            decl.remove();
-          }
+          decl.remove();
         }
       });
       return false;
