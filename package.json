@@ -1,0 +1,19 @@
+{
+  "name": "postcss-consts",
+  "version": "0.1.0",
+  "description": "PostCSS plugin for declaring variable constants using CSS custom properties syntax.",
+  "main": "index.js",
+  "author": "Justin Wong",
+  "license": "ISC",
+  "keywords": [
+    "postcss-plugin"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wongjn/postcss-consts.git"
+  },
+  "private": true,
+  "devDependencies": {
+    "postcss": "^5.2.16"
+  }
+}
