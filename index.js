@@ -14,15 +14,24 @@ let constantsFileCache = {};
 /**
  * Returns a function for the main PostCSS chain.
  *
- * @param {string} options.file  Path to a file to read constants from.
+ * @param {string} options.file  Optional. Path to a file to read constants
+ *                               from. Default false.
  * @param {RegExp} options.regex Optional. Regular expression to select
  *                               constants by from their names. Default
  *                               `/^[^a-z]+$/` (filters out any variable names
  *                               that contain lowercase letters.)
- * @return {Function} The function for PostCSS to run.
+ * @return {Function|boolean} The function for PostCSS to run if a file was
+ *                            supplied or false otherwise.
  */
-function process({file, regex = NO_LOWER_CASE} = {}) {
+function process({file = false, regex = NO_LOWER_CASE} = {}) {
   return root => {
+    if (!file) {
+      root.walkDecls(decl => {
+        resolveConstants(decl, getConstants(root, regex));
+      });
+      return;
+    }
+
     // Promise for async
     return new Promise(resolve => {
 
@@ -120,10 +129,15 @@ function getConstants(root, regex) {
   return constants;
 }
 
-module.exports = postcss.plugin('postcss-consts', options => {
+module.exports = postcss.plugin('postcss-consts', (options = {}) => {
     // If string option passed, then it is a file path string
     if (typeof options == 'string') {
       options = {file: options};
+    }
+
+    // If regex-type option passed, then it is the regex
+    else if (options instanceof RegExp) {
+      options = {regex: options};
     }
 
     return process(options);
