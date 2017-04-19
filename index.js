@@ -68,7 +68,7 @@ function resolveConstants(decl, constants) {
       return constants[p1];
     }
 
-    return `var(--${match})`;
+    return match;
   });
 }
 
