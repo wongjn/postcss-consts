@@ -1,6 +1,6 @@
 {
   "name": "postcss-consts",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "PostCSS plugin for declaring variable constants using CSS custom properties syntax.",
   "main": "index.js",
   "author": "wongjn",
