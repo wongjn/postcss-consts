@@ -124,6 +124,32 @@ th {
 }
 ```
 
+### Constants within constants
+
+You can specify constants within other constants. As long as the constant being
+used has been defined beforehand, it will be resolved appropriately. Constants
+from the global constant file are loaded at the start. Example:
+
+```css
+:root {
+  --CONSTANT-WIDTH: 20px;
+  --CONSTANT-COLOUR: green;
+  --CONSTANT-BORDER: var(--CONSTANT-WIDTH) solid var(--CONSTANT-COLOUR);
+}
+
+h1 {
+  border-bottom: var(--CONSTANT-BORDER);
+}
+```
+
+Becomes:
+
+```css
+h1 {
+  border-bottom: 20px solid green;
+}
+```
+
 ### Custom Filtering Regex
 
 You can specify your own filtering regex by passing a regex object, or passing

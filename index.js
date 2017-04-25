@@ -27,7 +27,7 @@ function process({file = false, regex = NO_LOWER_CASE} = {}) {
   return root => {
     if (!file) {
       root.walkDecls(decl => {
-        resolveConstants(decl, getConstants(root, regex));
+        decl.value = resolveValue(decl.value, getConstants(root, regex));
       });
       return;
     }
@@ -37,12 +37,12 @@ function process({file = false, regex = NO_LOWER_CASE} = {}) {
 
       // Get constants from file
       getConstantsFromFile(file, regex)
-        .then(constants => {
+        .then(fileConstants => {
           // Merge with constants from current processing root
-          constants = Object.assign(constants, getConstants(root, regex));
+          const constants = getConstants(root, regex, fileConstants);
 
           root.walkDecls(decl => {
-            resolveConstants(decl, constants);
+            decl.value = resolveValue(decl.value, constants);
           });
 
           resolve();
@@ -52,18 +52,19 @@ function process({file = false, regex = NO_LOWER_CASE} = {}) {
 }
 
 /**
- * Replaces `var()` instances of constants with the relevant value.
+ * Replaces `var()` constant instances within a string with the relevant value.
  *
- * @param {Declaration} decl      PostCSS declaration to process.
- * @param {object}      constants Object of constants.
+ * @param {string} value     The string value to process.
+ * @param {object} constants Object of constants.
+ * @return {string} Returns the processed string with any values resolved.
  */
-function resolveConstants(decl, constants) {
-  // Value does not contain any custom properties, exit early
-  if (!decl.value.includes('var(--')) {
-    return;
+function resolveValue(value, constants) {
+  // Value does not contain any custom properties, return with given value.
+  if (!value.includes('var(--')) {
+    return value;
   }
 
-  decl.value = decl.value.replace(CSS_VAR_NAME, (match, p1) => {
+  return value.replace(CSS_VAR_NAME, (match, p1) => {
     if (p1 in constants) {
       return constants[p1];
     }
@@ -103,19 +104,19 @@ function getConstantsFromFile(file, regex) {
 /**
  * Gets constants from a PostCSS root.
  *
- * @param {Root}   file  PostCSS Root object.
- * @param {RegExp} regex Regular expression to select constants by from their
- *                       names.
+ * @param {Root}   file      PostCSS Root object.
+ * @param {RegExp} regex     Regular expression to select constants by from
+ *                           their names.
+ * @param {object} constants Optional. An object of existing constants to merge
+ *                           new definitions into.
  * @return {object} Object of constants.
  */
-function getConstants(root, regex) {
-  const constants = {};
-
+function getConstants(root, regex, constants = {}) {
   root.walk(node => {
     if (node.type == 'rule' && node.selector == ':root') {
       node.walkDecls(decl => {
         if (decl.prop.indexOf('--') === 0 && regex.test(decl.prop)) {
-          constants[decl.prop.substr(2)] = decl.value;
+          constants[decl.prop.substr(2)] = resolveValue(decl.value, constants);
           decl.remove();
         }
       });
