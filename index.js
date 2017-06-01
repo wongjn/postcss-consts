@@ -5,8 +5,11 @@ const fs = require('fs');
 const NO_LOWER_CASE = /^[^a-z]+$/;
 
 // Regex to match and extract the variable name (without the beginning `--`) in
-// the value part of a declaration
-const CSS_VAR_NAME = /var\(--([^)]+)\)/g;
+// the value part of a declaration.
+// Two capture groups are created:
+// 1. The variable name without the `--` prefix.
+// 2. The fallback value (if any).
+const CSS_VAR_NAME = /var\(--([^),]+)(?:,(.+))?\)/g;
 
 // Use this as a cache for values read from files, keyed by their path.
 let constantsFileCache = {};
@@ -64,9 +67,12 @@ function resolveValue(value, constants) {
     return value;
   }
 
-  return value.replace(CSS_VAR_NAME, (match, p1) => {
+  return value.replace(CSS_VAR_NAME, (match, p1, p2) => {
     if (p1 in constants) {
       return constants[p1];
+    }
+    else if (p2) {
+      return match.replace(p2, resolveValue(p2, constants));
     }
 
     return match;
